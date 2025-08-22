@@ -1,0 +1,6 @@
+watchdog==3.0.0
+asyncio==3.4.3
+aiofiles==23.2.1
+diff-match-patch==20230430
+pyyaml==6.0.1
+colorama==0.4.6

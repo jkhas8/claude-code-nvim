@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+  
+  create-release:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Get the previous tag
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+        
+        # Generate changelog since previous tag
+        if [ -n "$PREV_TAG" ]; then
+          echo "## Changes since $PREV_TAG" > changelog.md
+          echo "" >> changelog.md
+          git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD >> changelog.md
+        else
+          echo "## Initial Release" > changelog.md
+          echo "" >> changelog.md
+          echo "- Initial release of Claude Code + Neovim Integration" >> changelog.md
+        fi
+        
+        # Set output for GitHub release
+        {
+          echo 'changelog<<EOF'
+          cat changelog.md
+          echo EOF
+        } >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        body: |
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ## Installation
+          
+          ```bash
+          git clone https://github.com/jkhas8/claude-code-nvim.git
+          cd claude-code-nvim
+          ./install.sh
+          ```
+          
+          ## What's Changed
+          
+          See the changelog above for detailed changes.
+          
+          **Full Changelog**: https://github.com/jkhas8/claude-code-nvim/compare/${{ steps.changelog.outputs.prev_tag }}...${{ github.ref_name }}
+        draft: false
+        prerelease: ${{ contains(github.ref_name, '-') }}
+    
+    - name: Create archive
+      run: |
+        # Create a clean archive without .git
+        mkdir -p /tmp/claude-code-nvim-${{ github.ref_name }}
+        cp -r . /tmp/claude-code-nvim-${{ github.ref_name }}/
+        cd /tmp
+        rm -rf claude-code-nvim-${{ github.ref_name }}/.git
+        tar -czf claude-code-nvim-${{ github.ref_name }}.tar.gz claude-code-nvim-${{ github.ref_name }}/
+        zip -r claude-code-nvim-${{ github.ref_name }}.zip claude-code-nvim-${{ github.ref_name }}/
+        
+        # Move back to workspace
+        mv claude-code-nvim-${{ github.ref_name }}.tar.gz ${{ github.workspace }}/
+        mv claude-code-nvim-${{ github.ref_name }}.zip ${{ github.workspace }}/
+    
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./claude-code-nvim-${{ github.ref_name }}.tar.gz
+        asset_name: claude-code-nvim-${{ github.ref_name }}.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Upload Release Assets (zip)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./claude-code-nvim-${{ github.ref_name }}.zip
+        asset_name: claude-code-nvim-${{ github.ref_name }}.zip
+        asset_content_type: application/zip

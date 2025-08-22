@@ -1,0 +1,32 @@
+# Claude Code + Neovim Integration Configuration
+
+# Paths to watch for changes
+watch_paths:
+  - /home/jkhas/work/personal/claude-code-nvim
+
+# Socket path for IPC communication
+socket_path: /tmp/claude-code-nvim.sock
+
+# Patterns to ignore (glob patterns)
+ignore_patterns:
+  - "*.pyc"
+  - "__pycache__"
+  - "node_modules"
+  - ".git"
+  - ".svn" 
+  - ".hg"
+  - "*.swp"
+  - "*.swo"
+  - ".DS_Store"
+  - "*.log"
+  - ".pytest_cache"
+  - "*.tmp"
+
+# File patterns to watch (empty means all files)
+watch_patterns: []
+
+# Cache settings
+cache_max_files: 100
+
+# Debounce delay in seconds (wait time before processing changes)
+debounce_delay: 0.1
