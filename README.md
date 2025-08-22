@@ -87,22 +87,48 @@ cd claude-code-nvim
 
 ## 🎯 Quick Start
 
+### 🚀 **Method 1: Automatic (Recommended)**
+1. **Open Neovim** in your project directory
+2. **Press `<leader>Cs`** or run `:ClaudeCodeStart`
+3. **Done!** The plugin will guide you if the watcher isn't running
+
+### 🛠️ **Method 2: Manual Control**
 1. **Start the file watcher:**
    ```bash
+   # In your project directory
    claude-code-watch
    ```
-
-2. **In Neovim, connect to the watcher:**
-   ```vim
+   
+2. **In Neovim, connect:**
+   ```bash
+   # Press <leader>Cs or run:
    :ClaudeCodeStart
    ```
 
-3. **Use Claude Code as normal** - changes will appear instantly in Neovim!
+3. **Use Claude Code as normal** - changes appear instantly in Neovim!
 
-4. **Review and accept/reject changes:**
-   ```vim
-   :ClaudeCodeReview
-   ```
+### 📋 **Common Commands**
+- `<leader>Cr` - Review pending changes
+- `<leader>Ca` - Accept all changes  
+- `<leader>Ct` - Check connection status
+- `<leader>ww` - Quick start (alternative binding)
+
+### 🔧 **Auto-start Options**
+
+**Option A: System Service (Set-and-forget)**
+```bash
+# Enable auto-start on login
+systemctl --user enable claude-code-watcher
+systemctl --user start claude-code-watcher
+```
+
+**Option B: Plugin Auto-start**
+```lua
+require("claude-code-nvim").setup({
+  auto_start_watcher = true,  -- Plugin tries to start watcher
+  auto_start = true,          -- Auto-connect when Neovim opens
+})
+```
 
 ## 📋 Commands
 

@@ -44,15 +44,43 @@ function M.start()
         return
     end
     
+    -- Check if watcher might be startable
+    local socket_exists = vim.fn.filereadable(M.state.config.socket_path) == 1
+    if not socket_exists and M.state.config.auto_start_watcher then
+        M._try_start_watcher()
+    end
+    
     ipc.connect(function(success)
         if success then
             M.state.connected = true
             ui.update_statusline("connected")
-            vim.notify("Connected to Claude Code watcher", vim.log.levels.INFO)
-        else
-            vim.notify("Failed to connect to Claude Code watcher", vim.log.levels.ERROR)
+            vim.notify("✅ Connected to Claude Code watcher", vim.log.levels.INFO, { title = "Claude Code" })
         end
     end)
+end
+
+-- Try to start the watcher automatically
+function M._try_start_watcher()
+    vim.notify("🚀 Attempting to start Claude Code watcher...", vim.log.levels.INFO, { title = "Claude Code" })
+    
+    -- Try to start using the installed command
+    local handle = vim.fn.jobstart("claude-code-watch", {
+        detach = true,
+        on_exit = function(_, code)
+            if code ~= 0 then
+                vim.schedule(function()
+                    vim.notify("Failed to auto-start watcher. Please run 'claude-code-watch' manually.", vim.log.levels.WARN)
+                end)
+            end
+        end
+    })
+    
+    if handle > 0 then
+        -- Give it a moment to start
+        vim.defer_fn(function()
+            vim.notify("Watcher started! Connecting...", vim.log.levels.INFO)
+        end, 1000)
+    end
 end
 
 function M.stop()

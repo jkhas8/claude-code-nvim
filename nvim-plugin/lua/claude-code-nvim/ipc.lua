@@ -18,7 +18,15 @@ function M.connect(callback)
     socket:connect(socket_path, function(err)
         if err then
             vim.schedule(function()
-                vim.notify("Failed to connect: " .. err, vim.log.levels.ERROR)
+                -- Show helpful error message
+                local error_msg = "❌ Failed to connect to Claude Code watcher!\n\n" ..
+                                "🔧 To fix this:\n" ..
+                "   1. Start the watcher: claude-code-watch\n" ..
+                "   2. Or run: systemctl --user start claude-code-watcher\n" ..
+                "   3. Then try :ClaudeCodeStart again\n\n" ..
+                "💡 Tip: Run 'claude-code-watch' in your terminal first!"
+                
+                vim.notify(error_msg, vim.log.levels.WARN, { title = "Claude Code" })
                 if callback then callback(false) end
             end)
             return

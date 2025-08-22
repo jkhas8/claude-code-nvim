@@ -159,12 +159,51 @@ fi
 echo ""
 echo "Creating helper scripts..."
 
-# Start script
+# Create start script in user's PATH
+mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/claude-code-watch" << EOF
 #!/bin/bash
-exec "$WATCHER_INSTALL_DIR/venv/bin/python" "$WATCHER_INSTALL_DIR/watcher.py"
+# Claude Code + Neovim Integration File Watcher
+# This script starts the file watcher service that monitors Claude Code changes
+
+WATCHER_DIR="$WATCHER_INSTALL_DIR"
+PYTHON_BIN="\$WATCHER_DIR/venv/bin/python"
+WATCHER_SCRIPT="\$WATCHER_DIR/watcher.py"
+
+if [ ! -f "\$PYTHON_BIN" ]; then
+    echo "❌ Error: Python virtual environment not found at \$PYTHON_BIN"
+    echo "Please run the installation script again: ./install.sh"
+    exit 1
+fi
+
+if [ ! -f "\$WATCHER_SCRIPT" ]; then
+    echo "❌ Error: Watcher script not found at \$WATCHER_SCRIPT"
+    echo "Please run the installation script again: ./install.sh"
+    exit 1
+fi
+
+echo "🚀 Starting Claude Code file watcher..."
+echo "📁 Watching: \$(pwd)"
+echo "🔌 Socket: /tmp/claude-code-nvim.sock"
+echo ""
+echo "💡 In Neovim, use :ClaudeCodeStart to connect"
+echo "   Or press <leader>Cs to start the connection"
+echo ""
+echo "Press Ctrl+C to stop the watcher"
+echo ""
+
+exec "\$PYTHON_BIN" "\$WATCHER_SCRIPT"
 EOF
 chmod +x "$HOME/.local/bin/claude-code-watch"
+
+# Also create a desktop shortcut script
+cat > "$HOME/.local/bin/claude-code-watch-here" << EOF
+#!/bin/bash
+# Start Claude Code watcher in current directory
+cd "\$(pwd)"
+claude-code-watch
+EOF
+chmod +x "$HOME/.local/bin/claude-code-watch-here"
 
 # Systemd service (Linux)
 if [ "$(uname)" = "Linux" ] && command -v systemctl &> /dev/null; then

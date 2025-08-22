@@ -4,6 +4,7 @@ local defaults = {
     -- Connection settings
     socket_path = '/tmp/claude-code-nvim.sock',
     auto_start = true,
+    auto_start_watcher = false,  -- Try to start watcher automatically
     auto_reconnect = true,
     reconnect_delay = 5000,  -- ms
     
